@@ -4,6 +4,10 @@
 // drawings stay PNG; the Charlotte Street animation (GIF) is copied as it is.
 // A third entry { trim: true } cuts off a drawing's white margins, so the
 // drawing starts at the image's left edge, in line with the text below it.
+// { shiftTop: { height, dx } } first moves the top band of the drawing (its
+// printed heading) sideways by dx pixels, so the heading starts on the same
+// line as the drawing. { cropLeft: n } then cuts n pixels off the left (where
+// only a line running off the edge would otherwise hold the margin open).
 // Run again after changing the list: node tools/web-images.mjs
 import sharp from 'sharp';
 import fs from 'fs';
@@ -83,7 +87,11 @@ const map = {
   'system/images': [
     ['93b44c_37cf14250d0b40bd89456cd562b69fbdf000.jpg', '01-assembly-video-poster.jpg'],
     ['93b44c_6c807480b824482e83f93bd7ee24405f~mv2.jpg', '02-module-exploded.jpg', { trim: true }],
-    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '03-module-setting.jpg', { trim: true }],
+    // Its heading started 28 px right of the drawing (heading at x 48, the first
+    // parcel at x 20 in the 1140 px original): the heading (top 110 px) moves
+    // left by 28 px, the street line running off the left edge is cut at the
+    // parcel's tip (x 19), then the margins are trimmed (21 Nov, his ask).
+    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '03-module-setting.jpg', { trim: true, shiftTop: { height: 110, dx: -28 }, cropLeft: 19 }],
     ['93b44c_8b3ab74944da4410aad36f2aded4dd62~mv2.jpg', '04-assembly-hall.jpg'],
     ['93b44c_20b2bf8a771043e9abc639f5d95d52c8~mv2.jpg', '05-module-setting-site.jpg'],
   ],
@@ -110,6 +118,26 @@ for (const [dir, files] of Object.entries(map)) {
       continue;
     }
     let img = sharp(from, { limitInputPixels: false }).rotate();
+    if (opts.shiftTop) {
+      const { height, dx } = opts.shiftTop; // dx < 0: to the left
+      const { width } = await sharp(from).metadata();
+      const band = await sharp(from).extract({ left: -dx, top: 0, width: width + dx, height }).toBuffer();
+      const blank = await sharp({ create: { width, height, channels: 3, background: '#ffffff' } }).png().toBuffer();
+      img = sharp(
+        await img
+          .composite([
+            { input: blank, left: 0, top: 0 },
+            { input: band, left: 0, top: 0 },
+          ])
+          .png()
+          .toBuffer(),
+      );
+    }
+    if (opts.cropLeft) {
+      const buf = await img.png().toBuffer();
+      const { width, height } = await sharp(buf).metadata();
+      img = sharp(await sharp(buf).extract({ left: opts.cropLeft, top: 0, width: width - opts.cropLeft, height }).toBuffer());
+    }
     if (opts.trim) img = sharp(await img.trim({ background: '#ffffff', threshold: 24 }).toBuffer());
     img = img.resize(MAX, MAX, { fit: 'inside', withoutEnlargement: true });
     img = dest.endsWith('.png') ? img.png({ compressionLevel: 9 }) : img.flatten({ background: '#fff' }).jpeg({ quality: 90, mozjpeg: true });

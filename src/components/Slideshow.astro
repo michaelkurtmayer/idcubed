@@ -17,8 +17,7 @@ interface Props {
   /* the home page: one image filling the window below the header, edge to edge */
   fullBleed?: boolean;
   items: Item[];
-  /* project pages: an X at the top right that goes back to the Projects page,
-     with the projects that were open there open again (and this one) */
+  /* project pages: an X at the top right that goes back to the Projects page */
   close?: { href: string; project: string };
 }
 
@@ -233,19 +232,11 @@ const bleedSizes = (img: ImageMetadata) =>
     mark();
   });
 
-  // The X: tells the Projects page which project we came from, so it opens the
-  // projects that were open before (see projects/index.astro). Escape does the same.
+  // The X goes back to the Projects page; Escape does the same.
   const close = document.querySelector<HTMLAnchorElement>('.slide-close');
   if (close) {
-    const leave = () => {
-      try {
-        sessionStorage.setItem('projects-return', close.dataset.project ?? '');
-      } catch {}
-    };
-    close.addEventListener('click', leave);
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape' || getComputedStyle(close).display === 'none') return;
-      leave();
       location.href = close.href;
     });
   }

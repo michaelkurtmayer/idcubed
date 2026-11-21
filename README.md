@@ -62,7 +62,7 @@ https://michaelkurtmayer.github.io/idcubed/ (hidden from search engines).
 
 ## Addresses
 
-- `/` sends visitors to their language (last used, else browser language, else English)
+- `/` always opens the English site (English is the default; French under FR)
 - `/en/`, `/fr/` — home
 - `/<lang>/system/` — the process
 - `/<lang>/projects/` — project list

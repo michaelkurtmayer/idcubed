@@ -47,7 +47,8 @@ const map = {
     ['93b44c_d53f75c709534ac8a12c4be95eae13e9~mv2.jpg', '03-unit.jpg'],
     ['93b44c_60b1316cd50247939818cb878d09e6eb~mv2.png', '04-module-components.png'],
     ['93b44c_10ddfdc1876b48a39e0a82ab8d28c409~mv2.jpg', '05-plans.jpg'],
-    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '06-module-setting.jpg'],
+    // the same diagram as on the System page, recropped the same way (see there)
+    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '06-module-setting.jpg', { trim: true, shiftTop: { height: 110, dx: -28 }, cropLeft: 19 }],
     ['93b44c_b3662e4ec6f04f3abe44fc78ddb17773~mv2.jpg', '07-assembly-hall.jpg'],
   ],
   'projects/european-school/images': [

@@ -1,9 +1,11 @@
 ---
-// The bare address sends visitors to their language: the one they last used
-// here, else their browser's, else English.
+// The bare address always opens the English site (English is the default,
+// Michael, 21 Nov); French is one click away under FR in the header.
 import '../styles/global.css';
-import { defaultLang, languageNames, langs, withBase } from '../i18n/ui';
+import { defaultLang, langs, withBase } from '../i18n/ui';
 import { site } from '../site';
+
+const target = withBase(`/${defaultLang}/`);
 ---
 
 <!doctype html>
@@ -15,6 +17,7 @@ import { site } from '../site';
     {Astro.site?.hostname !== 'www.idcubedmodular.com' && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href={withBase('/favicon.png')} type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="canonical" href={new URL(target, Astro.site)} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={`${site.name} — ${site.fullName}`} />
     <meta property="og:type" content="website" />
@@ -22,33 +25,12 @@ import { site } from '../site';
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     {langs.map((l) => <link rel="alternate" hreflang={l} href={new URL(withBase(`/${l}/`), Astro.site)} />)}
-    <script is:inline define:vars={{ supported: langs, fallback: defaultLang, base: withBase('/').replace(/\/$/, '') }}>
-      var pick = null;
-      try { pick = localStorage.getItem('lang'); } catch (e) {}
-      if (supported.indexOf(pick) === -1) {
-        pick = fallback;
-        var list = navigator.languages || [navigator.language || ''];
-        for (var i = 0; i < list.length; i++) {
-          var code = String(list[i] || '').slice(0, 2).toLowerCase();
-          if (supported.indexOf(code) !== -1) { pick = code; break; }
-        }
-      }
-      location.replace(base + '/' + pick + '/');
+    <script is:inline define:vars={{ target }}>
+      location.replace(target + location.hash);
     </script>
-    <noscript><meta http-equiv="refresh" content={`0; url=${withBase(`/${defaultLang}/`)}`} /></noscript>
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
   </head>
   <body class="chooser">
-    <p class="wordmark">{site.name}</p>
-    <ul class="langs">
-      {
-        langs.map((l) => (
-          <li>
-            <a href={withBase(`/${l}/`)} hreflang={l} lang={l}>
-              {languageNames[l]}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <a class="wordmark" href={target}>{site.name}</a>
   </body>
 </html>

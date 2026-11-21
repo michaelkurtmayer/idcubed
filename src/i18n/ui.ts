@@ -6,7 +6,7 @@
 export const langs = ['en', 'fr'] as const;
 export type Lang = (typeof langs)[number];
 
-// Used when a visitor's browser language is neither English nor French.
+// The default: the bare address always opens this language.
 export const defaultLang: Lang = 'en';
 
 export const languageNames: Record<Lang, string> = {

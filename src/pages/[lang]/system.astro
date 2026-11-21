@@ -1,6 +1,6 @@
 ---
 // System: the assembly video and the process drawings, then the intro and
-// the five steps, each number in the left column beside its text.
+// the five steps, each number and title in the left column beside its text.
 import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Slideshow from '../../components/Slideshow.astro';
@@ -33,9 +33,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     {
       d.steps.map((step, i) => (
         <section class="row">
-          <p class="row-label">{pad(i + 1)}</p>
+          <h2 class="row-label step-label">
+            <span class="step-num">{pad(i + 1)}</span>
+            <span>{step.title[lang]}</span>
+          </h2>
           <div class="row-body text">
-            <h2>{step.title[lang]}</h2>
             {paragraphs(step.text[lang]).map((p) => (
               <p set:html={paragraphHtml(p)} />
             ))}

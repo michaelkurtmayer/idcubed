@@ -2,6 +2,8 @@
 // home/images from the full-resolution files in originals/ (as downloaded
 // from the Wix site, 21 Nov 2026). Longest side 3200 px, JPEG quality 90;
 // drawings stay PNG; the Charlotte Street animation (GIF) is copied as it is.
+// A third entry { trim: true } cuts off a drawing's white margins, so the
+// drawing starts at the image's left edge, in line with the text below it.
 // Run again after changing the list: node tools/web-images.mjs
 import sharp from 'sharp';
 import fs from 'fs';
@@ -80,8 +82,8 @@ const map = {
   ],
   'system/images': [
     ['93b44c_37cf14250d0b40bd89456cd562b69fbdf000.jpg', '01-assembly-video-poster.jpg'],
-    ['93b44c_6c807480b824482e83f93bd7ee24405f~mv2.jpg', '02-module-exploded.jpg'],
-    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '03-module-setting.jpg'],
+    ['93b44c_6c807480b824482e83f93bd7ee24405f~mv2.jpg', '02-module-exploded.jpg', { trim: true }],
+    ['93b44c_6c177feaf15c472fa3cd0a9d3cb7db51~mv2.jpg', '03-module-setting.jpg', { trim: true }],
     ['93b44c_8b3ab74944da4410aad36f2aded4dd62~mv2.jpg', '04-assembly-hall.jpg'],
     ['93b44c_20b2bf8a771043e9abc639f5d95d52c8~mv2.jpg', '05-module-setting-site.jpg'],
   ],
@@ -100,14 +102,16 @@ const map = {
 const MAX = 3200;
 for (const [dir, files] of Object.entries(map)) {
   fs.mkdirSync(dir, { recursive: true });
-  for (const [src, dest] of files) {
+  for (const [src, dest, opts = {}] of files) {
     const from = path.join('originals', src);
     const to = path.join(dir, dest);
     if (dest.endsWith('.gif')) {
       fs.copyFileSync(from, to);
       continue;
     }
-    let img = sharp(from, { limitInputPixels: false }).rotate().resize(MAX, MAX, { fit: 'inside', withoutEnlargement: true });
+    let img = sharp(from, { limitInputPixels: false }).rotate();
+    if (opts.trim) img = sharp(await img.trim({ background: '#ffffff', threshold: 24 }).toBuffer());
+    img = img.resize(MAX, MAX, { fit: 'inside', withoutEnlargement: true });
     img = dest.endsWith('.png') ? img.png({ compressionLevel: 9 }) : img.flatten({ background: '#fff' }).jpeg({ quality: 90, mozjpeg: true });
     await img.toFile(to);
   }

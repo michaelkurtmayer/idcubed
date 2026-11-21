@@ -15,8 +15,10 @@
   --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --margin: 20px;
   --cols: 4;
-  /* one column of the grid (without the page margins) */
-  --col: calc((100vw - 2 * var(--margin)) / var(--cols));
+  /* where the second column starts, measured like the text grid (a share of
+     the element's width, not of the window), so images and text line up
+     exactly even where the scroll bar takes room */
+  --col2: calc(var(--margin) + (100% - 2 * var(--margin)) / var(--cols));
   /* the header: the name with the same white space above and below its line */
   --header: calc(2 * var(--margin) + 21.4286px);
   /* from the top of a 15/18 px line to the top of its capitals: text beside an
@@ -245,7 +247,7 @@ main {
   flex: 0 0 100%;
   display: flex;
   justify-content: flex-start;
-  padding-left: calc(var(--margin) + var(--col));
+  padding-left: var(--col2);
   scroll-snap-align: start;
 }
 
@@ -268,7 +270,7 @@ main {
   z-index: 1;
   top: calc(-1 * var(--cap));
   left: var(--margin);
-  width: calc(var(--col) - var(--margin));
+  width: calc(var(--col2) - 2 * var(--margin));
 }
 
 .project-facts p {
@@ -326,7 +328,7 @@ main {
 
 /* the left arrow sits just left of the images, at the end of the first column */
 .slide-prev {
-  left: calc(var(--margin) + var(--col) - 50px);
+  left: calc(var(--col2) - 50px);
 }
 
 .slide-next {
@@ -368,7 +370,7 @@ main {
 /* Below a project's images: starts under the images, in their column */
 .text-column {
   width: var(--measure);
-  margin: 36px 0 0 calc(var(--margin) + var(--col));
+  margin: 36px 0 0 var(--col2);
 }
 
 /* Rows: a label in the left column, the text from the second column on.
@@ -398,6 +400,17 @@ main {
 
 .row-body {
   grid-column: 2 / -1;
+}
+
+/* System: the step's number, then its title; a title that runs onto a second
+   line stays in line with its first word, not under the number */
+.step-label {
+  display: flex;
+}
+
+.step-num {
+  flex: none;
+  width: 2em;
 }
 
 .row-body.text {

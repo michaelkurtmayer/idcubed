@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+
+# Full-resolution originals stay on this Mac only (too large for GitHub;
+# the site uses the web-sized copies in projects/*/images/).
+originals/
+
+# Local tool settings
+.claude/

@@ -1,0 +1,31 @@
+---
+import { languageNames, langs, localize, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  path: string;
+  class?: string;
+}
+
+// Both languages, always; the current one is shown greyed out.
+const { lang, path, class: className } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<ul class:list={['langs', className]} aria-label={t('nav.language')}>
+  {
+    langs.map((l) => (
+      <li>
+        <a
+          href={localize(l, path)}
+          hreflang={l}
+          lang={l}
+          title={languageNames[l]}
+          aria-current={l === lang ? 'true' : undefined}
+        >
+          {l.toUpperCase()}
+        </a>
+      </li>
+    ))
+  }
+</ul>

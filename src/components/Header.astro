@@ -1,0 +1,74 @@
+---
+// Header in one row on the four-column grid:
+//   IDCUBED        System        Projects        About                 EN FR
+// On phones: the name and a menu button that opens all of the above.
+import LangSwitch from './LangSwitch.astro';
+import { localize, useTranslations, type Lang } from '../i18n/ui';
+import { site } from '../site';
+
+interface Props {
+  lang: Lang;
+  path: string;
+}
+
+const { lang, path } = Astro.props;
+const t = useTranslations(lang);
+const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
+const items = [
+  { cls: 'nav-1', href: '/system/', label: t('nav.system') },
+  { cls: 'nav-2', href: '/projects/', label: t('nav.projects') },
+  { cls: 'nav-3', href: '/about/', label: t('nav.about') },
+];
+---
+
+<header class="site-header">
+  <a class="wordmark" href={localize(lang, '/')}>{site.name}</a>
+
+  <!-- Phones only: opens the menu -->
+  <button
+    class="menu-button"
+    type="button"
+    aria-expanded="false"
+    aria-controls="site-menu"
+    aria-label={t('nav.menu')}
+    data-label-open={t('nav.menu')}
+    data-label-close={t('nav.close')}
+  >
+    <svg class="menu-icon-open" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 6h20M2 12h20M2 18h20" />
+    </svg>
+    <svg class="menu-icon-close" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 5l14 14M19 5L5 19" />
+    </svg>
+  </button>
+
+  <nav class="site-menu" id="site-menu" aria-label={site.name}>
+    <ul class="nav-main">
+      {
+        items.map((item) => (
+          <li class={item.cls}>
+            <a href={localize(lang, item.href)} aria-current={current(item.href)}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <LangSwitch lang={lang} path={path} class="header-langs" />
+  </nav>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const button = header?.querySelector<HTMLButtonElement>('.menu-button');
+  const setOpen = (open: boolean) => {
+    if (!header || !button) return;
+    header.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', (open ? button.dataset.labelClose : button.dataset.labelOpen) ?? '');
+  };
+  button?.addEventListener('click', () => setOpen(!header?.classList.contains('is-open')));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+</script>

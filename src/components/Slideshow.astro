@@ -1,0 +1,252 @@
+---
+// One large image at a time with thin arrows at the sides (computers);
+// on phones the images are simply stacked, edge to edge. Taken from
+// ateliermayer.ca. Additions: a slide can be a video (the System page), and
+// the "aside" slot fills the left column beside the images (a project's name,
+// place and credits), where it stays while the images change.
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+type Item =
+  | { src: ImageMetadata; alt: string; asIs?: boolean; video?: undefined }
+  | { video: string; src: ImageMetadata; alt: string; asIs?: undefined };
+
+interface Props {
+  lang: Lang;
+  /* the home page: one image filling the window below the header, edge to edge */
+  fullBleed?: boolean;
+  items: Item[];
+  /* project pages: an X at the top right that goes back to the Projects page,
+     with the projects that were open there open again (and this one) */
+  close?: { href: string; project: string };
+}
+
+const { lang, items, fullBleed = false, close } = Astro.props;
+const t = useTranslations(lang);
+const hasAside = Astro.slots.has('aside');
+
+// Copies up to the image's own width (at most 3200 px, see tools/web-images.mjs)
+const widths = (img: ImageMetadata) => [...[600, 900, 1200, 1600, 2000, 2600].filter((w) => w < img.width), img.width];
+
+// Upright images show narrower than landscape ones in the same 3:2 frame: the
+// browser is told their real width so it picks a copy of the right size.
+const sizes = (img: ImageMetadata) => {
+  const vw = Math.min(68, (68 * (img.width / img.height)) / 1.5);
+  return `(max-width: 720px) 100vw, ${vw.toFixed(1)}vw`;
+};
+
+// The home photo. On phones it fills the screen below the 50 px header and is
+// cropped at the sides, so it is shown much wider than the screen.
+const bleedSizes = (img: ImageMetadata) =>
+  `(max-width: 720px) calc((100vh - 50px) * ${(img.width / img.height).toFixed(3)}), 100vw`;
+---
+
+<div class:list={['slideshow', { 'slideshow-bleed': fullBleed }]} data-slideshow>
+  {
+    hasAside && (
+      <div class="slideshow-aside">
+        <slot name="aside" />
+      </div>
+    )
+  }
+  <div class="slides" tabindex="0">
+    {
+      items.map((item, i) => (
+        <figure class="slide">
+          {item.video ? (
+            <video
+              src={item.video}
+              poster={item.src.src}
+              width={item.src.width}
+              height={item.src.height}
+              aria-label={item.alt}
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="metadata"
+            />
+          ) : item.asIs ? (
+            <img
+              src={item.src.src}
+              width={item.src.width}
+              height={item.src.height}
+              alt={item.alt}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          ) : (
+            <Image
+              src={item.src}
+              alt={item.alt}
+              widths={widths(item.src)}
+              sizes={fullBleed ? bleedSizes(item.src) : sizes(item.src)}
+              quality={88}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : undefined}
+            />
+          )}
+        </figure>
+      ))
+    }
+  </div>
+  {
+    items.length > 1 && (
+      <>
+        <button class="slide-arrow slide-prev" type="button" aria-label={t('slides.previous')}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M13.5 3L6.5 10l7 7" />
+          </svg>
+        </button>
+        <button class="slide-arrow slide-next" type="button" aria-label={t('slides.next')}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M6.5 3l7 7-7 7" />
+          </svg>
+        </button>
+      </>
+    )
+  }
+  {
+    close && (
+      <a class="slide-close" href={close.href} aria-label={t('nav.close')} data-project={close.project}>
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M3 3l14 14M17 3L3 17" />
+        </svg>
+      </a>
+    )
+  }
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-slideshow]').forEach((show) => {
+    const track = show.querySelector<HTMLElement>('.slides');
+    if (!track) return;
+    const count = track.children.length;
+    const desktop = () => getComputedStyle(track).display === 'flex'; // phones: images stacked
+
+    // Computers: the slide in the frame, or the one an arrow is still moving to
+    // (a click on EN FR right after an arrow keeps the new slide).
+    let moving: number | null = null;
+    let movingTimer = 0;
+    const index = () => moving ?? Math.round(track.scrollLeft / track.clientWidth);
+    const arrived = () => {
+      moving = null;
+      clearTimeout(movingTimer);
+      mark();
+    };
+    const go = (i: number) => {
+      const next = (i + count) % count; // wraps around at both ends
+      moving = next;
+      clearTimeout(movingTimer);
+      movingTimer = window.setTimeout(arrived, 1000);
+      track.scrollTo({ left: next * track.clientWidth, behavior: 'smooth' });
+      mark();
+    };
+
+    // A link ending in #slide-N (from the Projects page thumbnails, or the
+    // other language) opens image N
+    const match = location.hash.match(/^#slide-(\d+)$/);
+    const opened = match && Number(match[1]) < count ? Number(match[1]) : 0;
+    const target = track.children[opened];
+    if (opened > 0 && target instanceof HTMLElement) {
+      if (desktop()) {
+        track.scrollLeft = opened * track.clientWidth;
+      } else {
+        target.scrollIntoView({ block: 'start' });
+      }
+    }
+    show.querySelector('.slide-prev')?.addEventListener('click', () => go(index() - 1));
+    show.querySelector('.slide-next')?.addEventListener('click', () => go(index() + 1));
+    document.addEventListener('keydown', (e) => {
+      if (!desktop()) return;
+      if (e.key === 'ArrowLeft') go(index() - 1);
+      if (e.key === 'ArrowRight') go(index() + 1);
+    });
+
+    // Phones: the image being looked at, counted once the page rests on it
+    // (0.7 s) with the header off the screen, so scrolling back up to the
+    // language links does not change it.
+    const header = document.querySelector<HTMLElement>('.site-header');
+    let lookedAt = opened;
+    let scrolled = false;
+    let restTimer = 0;
+    const firstHalfOnScreen = () =>
+      Math.max(
+        0,
+        [...track.children].findIndex((slide) => {
+          const r = slide.getBoundingClientRect();
+          const seen = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+          return seen >= Math.min(r.height, innerHeight) / 2;
+        }),
+      );
+    const rest = () => {
+      if (desktop() || !scrolled) return;
+      if (header && header.getBoundingClientRect().bottom > 0) return;
+      lookedAt = firstHalfOnScreen();
+      mark();
+    };
+    ['touchstart', 'wheel', 'pointerdown', 'keydown'].forEach((type) =>
+      addEventListener(type, () => (scrolled = true), { passive: true, once: true }),
+    );
+
+    // The language links (EN FR) and the address carry that image (#slide-N),
+    // so the other language, a reload or Back opens on the same image.
+    const langLinks = [...document.querySelectorAll<HTMLAnchorElement>('.header-langs a[hreflang]')];
+    let marked = -1;
+    function mark() {
+      const i = desktop() ? index() : lookedAt;
+      if (i === marked) return;
+      marked = i;
+      const hash = i > 0 ? `#slide-${i}` : '';
+      langLinks.forEach((a) => (a.hash = hash));
+      try {
+        history.replaceState(history.state, '', hash || location.pathname + location.search);
+      } catch {}
+    }
+    if (count < 2) return;
+    let queued = false;
+    track.addEventListener(
+      'scroll',
+      () => {
+        if (moving !== null) {
+          if (Math.abs(track.scrollLeft - moving * track.clientWidth) < 2) arrived();
+          return;
+        }
+        if (!queued) (queued = true), requestAnimationFrame(() => ((queued = false), mark()));
+      },
+      { passive: true },
+    );
+    track.addEventListener('scrollend', () => moving !== null && arrived());
+    addEventListener(
+      'scroll',
+      () => {
+        clearTimeout(restTimer);
+        restTimer = window.setTimeout(rest, 700);
+      },
+      { passive: true },
+    );
+    addEventListener('resize', () => {
+      marked = -1;
+      mark();
+    });
+    mark();
+  });
+
+  // The X: tells the Projects page which project we came from, so it opens the
+  // projects that were open before (see projects/index.astro). Escape does the same.
+  const close = document.querySelector<HTMLAnchorElement>('.slide-close');
+  if (close) {
+    const leave = () => {
+      try {
+        sessionStorage.setItem('projects-return', close.dataset.project ?? '');
+      } catch {}
+    };
+    close.addEventListener('click', leave);
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || getComputedStyle(close).display === 'none') return;
+      leave();
+      location.href = close.href;
+    });
+  }
+</script>

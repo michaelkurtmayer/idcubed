@@ -1,0 +1,722 @@
+/* IDCUBED — global styles
+   The ateliermayer.ca system on four columns instead of three (one per
+   header item: IDCUBED, System, Projects, About): Helvetica Neue at one size
+   (15 px, 18 px lines), dark grey text and black links on white, 20 px page
+   margins, a fixed one-row header, one large image at a time starting under
+   the first menu item, labels and captions in the left column. Every image
+   always fits on the screen whole. No dividing lines anywhere. Text is
+   left-aligned, never justified or hyphenated. Phones: the name and a menu
+   button, images stacked edge to edge. */
+
+:root {
+  --text: #333;
+  --link: #000;
+  --bg: #fff;
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --margin: 20px;
+  --cols: 4;
+  /* one column of the grid (without the page margins) */
+  --col: calc((100vw - 2 * var(--margin)) / var(--cols));
+  /* the header: the name with the same white space above and below its line */
+  --header: calc(2 * var(--margin) + 21.4286px);
+  /* from the top of a 15/18 px line to the top of its capitals: text beside an
+     image is raised by this much so its letters start level with the image */
+  --cap: 3px;
+  /* the tallest an image may be: a share of the screen height */
+  --img-h: 62svh;
+  /* width of the image frame (3:2): 68 % of the window at most, never taller
+     than --img-h, always fitting below the header, and never wider than the
+     three right-hand columns it starts in, less room for the right arrow */
+  --slide-w: min(68vw, var(--img-h) * 1.5, (100svh - var(--header) - 25px) * 1.5,
+    (100vw - 2 * var(--margin)) * 3 / 4 - 40px);
+  /* a column of text: about 75 characters */
+  --measure: min(46vw, 640px);
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 18px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: 400;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+p {
+  margin-bottom: 18px;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  opacity: 0.6;
+}
+
+:focus-visible {
+  outline: 1px solid var(--link);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip:focus {
+  left: var(--margin);
+  top: 4px;
+  z-index: 30;
+  background: var(--bg);
+}
+
+main {
+  padding-top: var(--header);
+  padding-bottom: 72px;
+}
+
+/* ---------- Header ----------
+   One row: IDCUBED / System / Projects / About, languages at the far right.
+   Each item sits at the start of its column. */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: var(--header);
+  padding: 20px var(--margin) 0;
+  background: var(--bg);
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: 21px;
+  align-content: start;
+  line-height: 21.4286px;
+}
+
+.wordmark {
+  grid-area: 1 / 1;
+  justify-self: start;
+  letter-spacing: 0.02em;
+}
+
+.site-menu,
+.nav-main {
+  display: contents;
+}
+
+.nav-1 {
+  grid-area: 1 / 2;
+}
+
+.nav-2 {
+  grid-area: 1 / 3;
+}
+
+.nav-3 {
+  grid-area: 1 / 4;
+}
+
+.wordmark,
+.site-menu li {
+  white-space: nowrap;
+}
+
+.langs {
+  display: flex;
+  gap: 0.6em;
+}
+
+/* The language being read, greyed out */
+.langs a[aria-current] {
+  opacity: 0.35;
+}
+
+.header-langs {
+  position: absolute;
+  top: 20px;
+  right: var(--margin);
+}
+
+.menu-button {
+  display: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  cursor: pointer;
+}
+
+.menu-button svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.menu-icon-close,
+.site-header.is-open .menu-icon-open {
+  display: none !important;
+}
+
+.site-header.is-open .menu-icon-close {
+  display: block !important;
+}
+
+/* ---------- Slideshow ---------- */
+
+.slideshow {
+  position: relative;
+}
+
+.slides {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.slides::-webkit-scrollbar {
+  display: none;
+}
+
+/* Each image starts under "System" in the header (the second column) */
+.slide {
+  position: relative;
+  flex: 0 0 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: calc(var(--margin) + var(--col));
+  scroll-snap-align: start;
+}
+
+/* Computers: every image in the same 3:2 frame, shown whole */
+@media (min-width: 721px) {
+  .slide img,
+  .slide video {
+    width: var(--slide-w);
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
+    object-position: left top;
+  }
+}
+
+/* The left column beside the images (a project's name, place and credits):
+   its letters level with the top of the image frame; it stays put while the
+   images change. */
+.slideshow-aside {
+  position: absolute;
+  z-index: 1;
+  top: calc(-1 * var(--cap));
+  left: var(--margin);
+  width: calc(var(--col) - var(--margin));
+}
+
+.project-facts p {
+  margin: 0;
+}
+
+.project-facts p + p,
+.project-facts h1 + p {
+  margin-top: 18px;
+}
+
+/* Home page: the photo runs edge to edge at the full window width, whole,
+   at least as tall as the window below the header (cropped, centred, where
+   it would be shorter). */
+.slideshow-bleed .slide {
+  padding-left: 0;
+}
+
+.slideshow-bleed .slide img {
+  width: 100%;
+  height: auto;
+  min-height: calc(100svh - var(--header));
+  max-height: none;
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: center;
+}
+
+.slide-arrow {
+  position: absolute;
+  /* vertically centred on the image frame (3:2) */
+  top: calc(var(--slide-w) / 3 - 19px);
+  width: 50px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+}
+
+.slide-arrow svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  margin: 9.5px auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.slide-arrow:hover {
+  color: #000;
+}
+
+/* the left arrow sits just left of the images, at the end of the first column */
+.slide-prev {
+  left: calc(var(--margin) + var(--col) - 50px);
+}
+
+.slide-next {
+  right: 7px;
+}
+
+/* Project pages: an X back to the Projects page, at the top right in line
+   with the right arrow, its top level with the top of the image */
+.slide-close {
+  position: absolute;
+  top: -3px;
+  right: 7px;
+  width: 50px;
+  height: 19px;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.slide-close svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  margin: 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.slide-close:hover {
+  color: #000;
+}
+
+/* ---------- Text ---------- */
+
+/* A heading inside a text: the same size, its own line, the text right below */
+.text h2 {
+  margin: 0;
+}
+
+/* Below a project's images: starts under the images, in their column */
+.text-column {
+  width: var(--measure);
+  margin: 36px 0 0 calc(var(--margin) + var(--col));
+}
+
+/* Rows: a label in the left column, the text from the second column on.
+   Used on the home, System and About pages. */
+.rows {
+  padding: 0 var(--margin);
+  margin-top: calc(-1 * var(--cap));
+}
+
+.slideshow + .rows {
+  margin-top: 36px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+}
+
+.row + .row {
+  margin-top: 18px;
+}
+
+.row-label {
+  grid-column: 1;
+  padding-right: var(--margin);
+}
+
+.row-body {
+  grid-column: 2 / -1;
+}
+
+.row-body.text {
+  max-width: var(--measure);
+}
+
+.row-body p:last-child {
+  margin-bottom: 0;
+}
+
+.home-text {
+  margin-top: 36px;
+}
+
+/* About: a blank line and a half between sections */
+.about .row + .row {
+  margin-top: 54px;
+}
+
+.contact p {
+  margin-bottom: 18px;
+}
+
+/* Four portraits or covers in a row, with a few lines under each
+   (two by two on narrow windows, never three and one) */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 36px var(--margin);
+}
+
+@media (min-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cards p {
+  margin: 10px 0 0;
+}
+
+.card-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.card-cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  object-position: left bottom;
+}
+
+/* ---------- Project list ---------- */
+
+.work-list {
+  padding: 0 var(--margin);
+  margin-top: calc(-1 * var(--cap) - 1.7px);
+}
+
+.work-row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  line-height: 21.4286px;
+}
+
+.work-row > span {
+  padding-right: var(--margin);
+}
+
+.work-item > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.work-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+.work-item > summary:hover {
+  opacity: 0.6;
+}
+
+.work-title {
+  color: var(--link);
+}
+
+.work-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0 18px;
+}
+
+.work-thumbs img {
+  width: auto;
+  height: 150px;
+}
+
+/* ---------- 404 and the language chooser ---------- */
+
+.not-found {
+  padding: 0 var(--margin);
+  margin-top: calc(-1 * var(--cap));
+}
+
+.not-found h1 {
+  margin-bottom: 10px;
+}
+
+.not-found a {
+  margin-left: 1em;
+}
+
+.chooser {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: var(--margin);
+}
+
+.chooser .langs {
+  gap: 1.5em;
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 720px) {
+  :root {
+    --margin: 16px;
+    --phone-header: 50px;
+  }
+
+  body {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  p {
+    margin-bottom: 20px;
+  }
+
+  main {
+    padding-top: 0;
+    padding-bottom: 48px;
+  }
+
+  /* The name and a menu button; the button opens everything else */
+  .site-header {
+    position: relative;
+    height: var(--phone-header);
+    padding: 0 var(--margin);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    line-height: 20px;
+  }
+
+  .menu-button {
+    display: block;
+  }
+
+  .site-menu {
+    display: none;
+  }
+
+  .site-header.is-open .site-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 100vh;
+    padding: 12px var(--margin) 40px;
+    background: var(--bg);
+  }
+
+  .site-header.is-open .nav-main {
+    display: block;
+  }
+
+  .site-header.is-open .site-menu li {
+    line-height: 26px;
+  }
+
+  .site-header.is-open .header-langs {
+    position: static;
+    gap: 1em;
+  }
+
+  /* Images stacked, full width, edge to edge, thin white gaps */
+  .slides {
+    display: block;
+    overflow: visible;
+  }
+
+  .slide {
+    display: block;
+    padding-left: 0;
+  }
+
+  .slide + .slide {
+    margin-top: 6px;
+  }
+
+  /* never taller than the screen below the header */
+  .slide img,
+  .slide video {
+    width: 100%;
+    max-height: calc(100svh - var(--phone-header));
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .slideshow-bleed .slide img {
+    min-height: calc(100svh - var(--phone-header));
+    max-height: none;
+    object-fit: cover;
+  }
+
+  .slide-arrow,
+  .slide-close {
+    display: none;
+  }
+
+  /* A project's name, place and credits: above its images */
+  .slideshow-aside {
+    position: static;
+    width: auto;
+    padding: 0 var(--margin) 16px;
+  }
+
+  .text-column {
+    width: auto;
+    margin: 24px var(--margin) 0;
+  }
+
+  /* Rows: the label above its text */
+  .row {
+    display: block;
+  }
+
+  .row-label {
+    padding-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .row-body.text {
+    max-width: none;
+  }
+
+  .rows {
+    margin-top: 0;
+  }
+
+  .slideshow + .rows,
+  .home-text {
+    margin-top: 24px;
+  }
+
+  .row + .row {
+    margin-top: 20px;
+  }
+
+  .about .row + .row {
+    margin-top: 44px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px var(--margin);
+  }
+
+  /* Project list: name and type, the place below */
+  .work-list {
+    margin-top: 0;
+  }
+
+  .work-row {
+    grid-template-columns: 1fr auto;
+    line-height: 20px;
+  }
+
+  .work-row > span {
+    padding-right: 0;
+  }
+
+  .work-list li + li {
+    margin-top: 14px;
+  }
+
+  .work-row > :nth-child(2) {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .work-row > :nth-child(3) {
+    grid-row: 1;
+    grid-column: 2;
+    padding-left: var(--margin);
+    text-align: right;
+  }
+
+  .work-row > .work-by {
+    display: none;
+  }
+
+  .work-thumbs img {
+    height: 96px;
+  }
+
+  .not-found {
+    margin-top: 0;
+  }
+}

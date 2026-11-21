@@ -1,0 +1,98 @@
+---
+// The project list, as on ateliermayer.ca's Work page: clicking a project
+// opens a band of thumbnails of all its images underneath; each thumbnail
+// opens the project page at that image. Several projects can be open at once.
+// Columns: name, place, type, and IDCUBED (North America) or NKBAK (Europe).
+import { Image } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import { getProjects, slidesOf } from '../../../lib/projects';
+import { langPaths, localize, useTranslations, type Lang } from '../../../i18n/ui';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const projects = await getProjects();
+---
+
+<Base lang={lang} title={t('nav.projects')}>
+  <h1 class="visually-hidden">{t('nav.projects')}</h1>
+  <ul class="work-list">
+    {
+      projects.map((p) => {
+        const page = localize(lang, `/projects/${p.id}/`);
+        return (
+          <li>
+            <details class="work-item" data-project={p.id}>
+              <summary class="work-row">
+                <span class="work-title">{p.data.title[lang]}</span>
+                <span>{p.data.location[lang]}</span>
+                <span>{p.data.type[lang]}</span>
+                <span class="work-by">{p.data.by}</span>
+              </summary>
+              <div class="work-thumbs">
+                {slidesOf(p, lang).map((img, i) => (
+                  <a href={`${page}#slide-${i}`}>
+                    <Image src={img.src} alt={img.alt} height={150} densities={[1, 2]} quality={85} loading="lazy" />
+                  </a>
+                ))}
+              </div>
+            </details>
+          </li>
+        );
+      })
+    }
+  </ul>
+</Base>
+
+<script>
+  // Remembers which projects are open (for this tab only). Coming back from a
+  // project page by its X (or the browser's back button), the same projects are
+  // open again, the one just seen among them, at the same scroll position.
+  // Arriving any other way (the Projects link), every project starts closed.
+  const store = {
+    get: (k: string) => {
+      try {
+        return sessionStorage.getItem(k);
+      } catch {
+        return null;
+      }
+    },
+    set: (k: string, v: string) => {
+      try {
+        sessionStorage.setItem(k, v);
+      } catch {}
+    },
+    remove: (k: string) => {
+      try {
+        sessionStorage.removeItem(k);
+      } catch {}
+    },
+  };
+  const items = [...document.querySelectorAll<HTMLDetailsElement>('details.work-item')];
+  const save = () =>
+    store.set('projects-open', JSON.stringify(items.filter((d) => d.open).map((d) => d.dataset.project)));
+  items.forEach((d) => d.addEventListener('toggle', save));
+  document.querySelectorAll('.work-thumbs a').forEach((a) =>
+    a.addEventListener('click', () => {
+      save();
+      store.set('projects-scroll', String(window.scrollY));
+    }),
+  );
+
+  const from = store.get('projects-return');
+  const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  if (from !== null || nav?.type === 'back_forward') {
+    store.remove('projects-return');
+    let open: string[] = [];
+    try {
+      open = JSON.parse(store.get('projects-open') ?? '[]');
+    } catch {}
+    if (from) open.push(from);
+    items.forEach((d) => {
+      if (open.includes(d.dataset.project ?? '')) d.open = true;
+    });
+    const y = Number(store.get('projects-scroll') ?? 0);
+    if (y > 0) window.scrollTo(0, y);
+  }
+</script>

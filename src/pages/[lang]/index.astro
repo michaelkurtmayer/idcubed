@@ -1,0 +1,37 @@
+---
+// Home: one photo edge to edge (the first image of the project named in
+// home/index.md), then a short text: the project's name and place in the left
+// column, the headline and text beside it.
+import { getEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Slideshow from '../../components/Slideshow.astro';
+import { getProjects, slidesOf } from '../../lib/projects';
+import { langPaths, localize, paragraphHtml, paragraphs, type Lang } from '../../i18n/ui';
+import { site } from '../../site';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const home = await getEntry('home', 'index');
+if (!home) throw new Error('Missing home/index.md');
+const project = (await getProjects()).find((p) => p.id === home.data.project);
+if (!project) throw new Error(`home/index.md: no project "${home.data.project}"`);
+const page = localize(lang, `/projects/${project.id}/`);
+---
+
+<Base lang={lang}>
+  <h1 class="visually-hidden">{site.name} — {site.fullName}</h1>
+  <Slideshow lang={lang} items={slidesOf(project, lang).slice(0, 1)} fullBleed />
+  <div class="rows home-text">
+    <div class="row">
+      <p class="row-label">
+        <a href={page}>{project.data.title[lang]}</a><br />
+        {project.data.location[lang]}
+      </p>
+      <div class="row-body text">
+        <p>{home.data.headline[lang]}</p>
+        {paragraphs(home.data.text[lang]).map((p) => <p set:html={paragraphHtml(p)} />)}
+      </div>
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,119 @@
+---
+// About: rows on the four-column grid, each with its label in the left
+// column: contact beside the intro, then the founding partners (four
+// portraits, one per column width), collaborators, suppliers, the research
+// background and the news.
+import { getEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { langPaths, paragraphHtml, paragraphs, useTranslations, type Lang } from '../../i18n/ui';
+import { site } from '../../site';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const entry = await getEntry('about', 'index');
+if (!entry) throw new Error('Missing about/index.md');
+const d = entry.data;
+---
+
+<Base lang={lang} title={t('nav.about')} description={paragraphs(d.intro[lang])[0]}>
+  <h1 class="visually-hidden">{t('nav.about')}</h1>
+  <div class="rows about">
+    <div class="row">
+      <aside class="row-label contact" aria-label={t('about.contact')}>
+        <p>
+          {site.fullName}<br />
+          {site.address.map((line, i) => (
+            <>
+              {line}
+              {i < site.address.length - 1 && <br />}
+            </>
+          ))}
+        </p>
+        <p>
+          {site.phone && <><a href={`tel:+1${site.phone.replace(/\D/g, '')}`}>{site.phone}</a><br /></>}
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+        <p>
+          {site.social.map((s, i) => (
+            <>
+              {i > 0 && <br />}
+              <a href={s.href}>{s.text}</a>
+            </>
+          ))}
+        </p>
+      </aside>
+      <div class="row-body text">
+        {paragraphs(d.intro[lang]).map((p) => <p set:html={paragraphHtml(p)} />)}
+      </div>
+    </div>
+
+    <section class="row">
+      <h2 class="row-label">{d.partners.label[lang]}</h2>
+      <ul class="row-body cards">
+        {
+          d.partners.people.map((p) => (
+            <li>
+              <Image src={p.photo} alt={p.name} width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-photo" />
+              <p>
+                {p.url ? <a href={p.url}>{p.name}</a> : p.name}
+                <br />
+                {p.text[lang]}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {
+      d.groups.map((g) => (
+        <section class="row">
+          <h2 class="row-label">{g.label[lang]}</h2>
+          <div class="row-body text">
+            {g.entries.map((e) => (
+              <p>
+                {e.url ? <a href={e.url}>{e.name}</a> : e.name}
+                <br />
+                {e.text[lang]}
+              </p>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="row">
+      <h2 class="row-label">{d.background.label[lang]}</h2>
+      <div class="row-body text">
+        {paragraphs(d.background.text[lang]).map((p) => <p set:html={paragraphHtml(p)} />)}
+      </div>
+    </section>
+
+    <section class="row">
+      <h2 class="row-label">{d.news.label[lang]}</h2>
+      <ul class="row-body cards" lang="en">
+        {
+          d.news.items.map((n) => (
+            <li>
+              {n.url ? (
+                <a href={n.url} class="card-link">
+                  <Image src={n.cover} alt={n.source} width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-cover" />
+                </a>
+              ) : (
+                <Image src={n.cover} alt={n.source} width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-cover" />
+              )}
+              <p>
+                {n.url ? <a href={n.url}>{n.source}</a> : n.source}
+                <br />
+                {n.title}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</Base>

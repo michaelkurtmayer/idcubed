@@ -1,0 +1,52 @@
+---
+// System: the assembly video and the process drawings, then the intro and
+// the five steps, each number in the left column beside its text.
+import { getEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Slideshow from '../../components/Slideshow.astro';
+import { langPaths, paragraphHtml, paragraphs, useTranslations, withBase, type Lang } from '../../i18n/ui';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const entry = await getEntry('system', 'index');
+if (!entry) throw new Error('Missing system/index.md');
+const d = entry.data;
+
+const items = [
+  ...(d.video ? [{ video: withBase(d.video.src), src: d.video.poster, alt: d.title[lang] }] : []),
+  ...d.images.map((src) => ({ src, alt: d.title[lang] })),
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<Base lang={lang} title={t('nav.system')} description={paragraphs(d.intro[lang])[0]}>
+  <h1 class="visually-hidden">{t('nav.system')}</h1>
+  <Slideshow lang={lang} items={items} />
+  <div class="rows">
+    <div class="row">
+      <div class="row-body text">
+        {paragraphs(d.intro[lang]).map((p) => <p set:html={paragraphHtml(p)} />)}
+      </div>
+    </div>
+    {
+      d.steps.map((step, i) => (
+        <section class="row">
+          <p class="row-label">{pad(i + 1)}</p>
+          <div class="row-body text">
+            <h2>{step.title[lang]}</h2>
+            {paragraphs(step.text[lang]).map((p) => (
+              <p set:html={paragraphHtml(p)} />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+    <div class="row">
+      <div class="row-body text">
+        {paragraphs(d.closing[lang]).map((p) => <p set:html={paragraphHtml(p)} />)}
+      </div>
+    </div>
+  </div>
+</Base>

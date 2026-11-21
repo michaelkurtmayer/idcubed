@@ -1,0 +1,53 @@
+---
+// A project: its images one at a time, the name, place, type and credits in
+// the left column beside them, the text below.
+import Base from '../../../layouts/Base.astro';
+import Slideshow from '../../../components/Slideshow.astro';
+import { getProjects, slidesOf } from '../../../lib/projects';
+import { langs, localize, paragraphHtml, paragraphs, type Lang } from '../../../i18n/ui';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return langs.flatMap((lang) =>
+    projects.map((project) => ({
+      params: { lang, slug: project.id },
+      props: { project },
+    })),
+  );
+}
+
+const { project } = Astro.props;
+const lang = Astro.params.lang as Lang;
+const d = project.data;
+const text = paragraphs(d.text[lang]);
+const description = text[0].split('\n')[0];
+---
+
+<Base lang={lang} title={d.title[lang]} description={description}>
+  <article class="project">
+    <Slideshow lang={lang} items={slidesOf(project, lang)} close={{ href: localize(lang, '/projects/'), project: project.id }}>
+      <div slot="aside" class="project-facts">
+        <h1>{d.title[lang]}</h1>
+        <p>
+          {d.location[lang]}<br />
+          {d.type[lang]}
+        </p>
+        {
+          d.credits.length > 0 && (
+            <p>
+              {d.credits.map((c, i) => (
+                <>
+                  {i > 0 && <br />}
+                  {c.role[lang]}: {c.url ? <a href={c.url}>{c.name}</a> : c.name}
+                </>
+              ))}
+            </p>
+          )
+        }
+      </div>
+    </Slideshow>
+    <div class="text-column text">
+      {text.map((p) => <p set:html={paragraphHtml(p)} />)}
+    </div>
+  </article>
+</Base>

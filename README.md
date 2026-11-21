@@ -55,8 +55,10 @@ npm run build    # produce the finished site in dist/
 
 `.github/workflows/publish.yml` builds the site and publishes it with GitHub
 Pages every time a change reaches the `main` branch, while the repository
-variable `PUBLISH` is `true`. Until the domain is moved from Wix, the site
-would live at a temporary `https://<user>.github.io/<repository>/` address.
+variable `PUBLISH` is `true`. The repository is
+[michaelkurtmayer/idcubed](https://github.com/michaelkurtmayer/idcubed); until
+the domain is moved from Wix, the site lives at
+https://michaelkurtmayer.github.io/idcubed/ (hidden from search engines).
 
 ## Addresses
 

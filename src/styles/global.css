@@ -378,7 +378,7 @@ main {
   margin-top: calc(-1 * var(--cap));
 }
 
-.slideshow + .rows {
+.slideshow ~ .rows {
   margin-top: 36px;
 }
 
@@ -660,7 +660,7 @@ main {
     margin-top: 0;
   }
 
-  .slideshow + .rows,
+  .slideshow ~ .rows,
   .home-text {
     margin-top: 24px;
   }

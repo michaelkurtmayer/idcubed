@@ -35,10 +35,10 @@ const sizes = (img: ImageMetadata) => {
   return `(max-width: 720px) 100vw, ${vw.toFixed(1)}vw`;
 };
 
-// The home photo. On phones it fills the screen below the 50 px header and is
+// The home photo. On phones it fills the screen below the 76 px header and is
 // cropped at the sides, so it is shown much wider than the screen.
 const bleedSizes = (img: ImageMetadata) =>
-  `(max-width: 720px) calc((100vh - 50px) * ${(img.width / img.height).toFixed(3)}), 100vw`;
+  `(max-width: 720px) calc((100vh - 76px) * ${(img.width / img.height).toFixed(3)}), 100vw`;
 ---
 
 <div class:list={['slideshow', { 'slideshow-bleed': fullBleed }]} data-slideshow>

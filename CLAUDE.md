@@ -30,7 +30,10 @@ in the manner of ateliermayer.ca. They hold in every session; see README.md for 
 
 ## Design
 
-- The ateliermayer.ca system on four columns (IDCUBED / System / Projects / About): Helvetica
+- The real IDCUBED logo (from the Wix site, `public/logo.png`) in the header: 60 px tall on
+  computers, 44 px on phones, with the side margin's white space above and below; the menu's
+  capitals start level with its top.
+- The ateliermayer.ca system on four columns (logo / System / Projects / About): Helvetica
   Neue at one size, dark grey text and black links on white, one image at a time starting under
   the first menu item, labels and project details in the left column.
 - No dividing lines anywhere (no rules, borders or underlines as separators).

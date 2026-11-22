@@ -19,8 +19,14 @@
      the element's width, not of the window), so images and text line up
      exactly even where the scroll bar takes room */
   --col2: calc(var(--margin) + (100% - 2 * var(--margin)) / var(--cols));
-  /* the header: the name with the same white space above and below its line */
-  --header: calc(2 * var(--margin) + 21.4286px);
+  /* the IDCUBED logo (public/logo.png, from the Wix site): its height */
+  --logo-h: 60px;
+  /* the header: the logo with the same white space above and below it as the
+     side margins */
+  --header: calc(2 * var(--margin) + var(--logo-h));
+  /* from the top of a menu line (15/21.4 px) to the top of its capitals: the
+     menu is raised by this much so its capitals start level with the logo */
+  --nav-cap: 4.75px;
   /* from the top of a 15/18 px line to the top of its capitals: text beside an
      image is raised by this much so its letters start level with the image */
   --cap: 3px;
@@ -131,8 +137,9 @@ main {
 }
 
 /* ---------- Header ----------
-   One row: IDCUBED / System / Projects / About, languages at the far right.
-   Each item sits at the start of its column. */
+   One row: the logo / System / Projects / About, languages at the far right.
+   Each item sits at the start of its column; the menu's capitals start level
+   with the top of the logo. */
 
 .site-header {
   position: fixed;
@@ -141,19 +148,33 @@ main {
   right: 0;
   z-index: 10;
   height: var(--header);
-  padding: 20px var(--margin) 0;
+  padding: var(--margin) var(--margin) 0;
   background: var(--bg);
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
-  grid-template-rows: 21px;
   align-content: start;
+  align-items: start;
   line-height: 21.4286px;
 }
 
 .wordmark {
   grid-area: 1 / 1;
   justify-self: start;
-  letter-spacing: 0.02em;
+}
+
+.site-header .wordmark {
+  display: block;
+  line-height: 0;
+}
+
+.wordmark img {
+  display: block;
+  width: auto;
+  height: var(--logo-h);
+}
+
+.nav-main li {
+  margin-top: calc(-1 * var(--nav-cap));
 }
 
 .site-menu,
@@ -190,7 +211,7 @@ main {
 
 .header-langs {
   position: absolute;
-  top: 20px;
+  top: calc(var(--margin) - var(--nav-cap));
   right: var(--margin);
 }
 
@@ -540,7 +561,9 @@ main {
 @media (max-width: 720px) {
   :root {
     --margin: 16px;
-    --phone-header: 50px;
+    --logo-h: 44px;
+    /* the logo with the side margin's white space above and below it */
+    --phone-header: calc(2 * var(--margin) + var(--logo-h));
   }
 
   body {
@@ -557,7 +580,7 @@ main {
     padding-bottom: 48px;
   }
 
-  /* The name and a menu button; the button opens everything else */
+  /* The logo and a menu button; the button opens everything else */
   .site-header {
     position: relative;
     height: var(--phone-header);
@@ -596,6 +619,10 @@ main {
 
   .site-header.is-open .site-menu li {
     line-height: 26px;
+  }
+
+  .site-header.is-open .nav-main li {
+    margin-top: 0;
   }
 
   .site-header.is-open .header-langs {

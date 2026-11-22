@@ -1,9 +1,10 @@
 ---
 // Header in one row on the four-column grid:
-//   IDCUBED        System        Projects        About                 EN FR
-// On phones: the name and a menu button that opens all of the above.
+//   [logo]         System        Projects        About                 EN FR
+// The logo is the one from the Wix site (public/logo.png, 3x its 60 px height).
+// On phones: the logo and a menu button that opens all of the above.
 import LangSwitch from './LangSwitch.astro';
-import { localize, useTranslations, type Lang } from '../i18n/ui';
+import { localize, useTranslations, withBase, type Lang } from '../i18n/ui';
 import { site } from '../site';
 
 interface Props {
@@ -22,7 +23,9 @@ const items = [
 ---
 
 <header class="site-header">
-  <a class="wordmark" href={localize(lang, '/')}>{site.name}</a>
+  <a class="wordmark" href={localize(lang, '/')}>
+    <img src={withBase('/logo.png')} alt={site.fullName} width="472" height="180" />
+  </a>
 
   <!-- Phones only: opens the menu -->
   <button

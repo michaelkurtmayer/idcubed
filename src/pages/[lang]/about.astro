@@ -56,7 +56,15 @@ const d = entry.data;
         {
           d.partners.people.map((p) => (
             <li>
-              <Image src={p.photo} alt={p.name} width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-photo" />
+              {p.url ? (
+                /* the photo opens the same page as the name; the name's link is the one
+                   screen readers and the keyboard use, so this one is skipped by them */
+                <a href={p.url} class="card-link" tabindex="-1" aria-hidden="true">
+                  <Image src={p.photo} alt="" width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-photo" />
+                </a>
+              ) : (
+                <Image src={p.photo} alt={p.name} width={400} densities={[1, 2]} quality={85} loading="lazy" class="card-photo" />
+              )}
               <p>
                 {p.url ? <a href={p.url}>{p.name}</a> : p.name}
                 <br />

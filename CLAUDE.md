@@ -31,8 +31,9 @@ in the manner of ateliermayer.ca. They hold in every session; see README.md for 
 ## Design
 
 - The real IDCUBED logo (from the Wix site, `public/logo.png`) in the header: 60 px tall on
-  computers, 44 px on phones, with the side margin's white space above and below; the menu's
-  capitals start level with its top.
+  computers, 44 px on phones, with the side margin's white space above and below. The menu
+  (System, Projects, About, EN FR) is larger than the text (20 px against 15 px) and centred
+  vertically on the logo (21 Nov, his ask).
 - The ateliermayer.ca system on four columns (logo / System / Projects / About): Helvetica
   Neue at one size, dark grey text and black links on white, one image at a time starting under
   the first menu item, labels and project details in the left column.
